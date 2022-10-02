@@ -1,10 +1,7 @@
+#include "ParsingSource.h"
+#include "ExtractParsed.h"
 #include <windows.h>
-#include <string>
 #include <stdio.h>
-#include <iostream>
-#include <fstream>
-#include <map>
-#include <sstream>
 
 using std::string;
 
@@ -22,8 +19,9 @@ void ExtractData();
 
 int main()
 {
-    if (Connect())
-        ExtractData();
+    //if (Connect())
+    //ParseData();
+    ExtractData();
 }
 
 
@@ -44,9 +42,8 @@ int Connect()
 
     memBuffer = readUrl2(szUrl, fileSize, &headerBuffer);
     //printf("returned from readUrl\n");
-    //printf("data returned:\n%s", memBuffer);
-    if (fileSize != 0)
-    {
+    printf("data returned:\n%s", memBuffer);
+    if (fileSize != 0) {
         printf("Got some data:\n\n");
         fp = fopen("webSource.txt", "wb");
         fwrite(memBuffer, 1, fileSize, fp);
@@ -71,78 +68,61 @@ void mParseUrl(char* mUrl, string& serverName, string& filepath, string& filenam
         url.erase(0, 8);
 
     n = url.find('/');
-    if (n != string::npos)
-    {
+    if (n != string::npos){
         serverName = url.substr(0, n);
         filepath = url.substr(n);
         n = filepath.rfind('/');
         filename = filepath.substr(n + 1);
     }
-
-    else
-    {
+    else {
         serverName = url;
         filepath = "/";
         filename = "";
     }
 }
 
-SOCKET connectToServer(char* szServerName, WORD portNum)
-{
+SOCKET connectToServer(char* szServerName, WORD portNum) {
     struct hostent* hp;
     unsigned int addr;
     struct sockaddr_in server;
     SOCKET conn;
-
     conn = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (conn == INVALID_SOCKET)
         return NULL;
-
-    if (inet_addr(szServerName) == INADDR_NONE)
-    {
+    if (inet_addr(szServerName) == INADDR_NONE) {
         hp = gethostbyname(szServerName);
     }
-    else
-    {
+    else {
         addr = inet_addr(szServerName);
         hp = gethostbyaddr((char*)&addr, sizeof(addr), AF_INET);
     }
-
-    if (hp == NULL)
-    {
+    if (hp == NULL) {
         closesocket(conn);
         return NULL;
     }
-
     server.sin_addr.s_addr = *((unsigned long*)hp->h_addr);
     server.sin_family = AF_INET;
     server.sin_port = htons(portNum);
-    if (connect(conn, (struct sockaddr*)&server, sizeof(server)))
-    {
+    if (connect(conn, (struct sockaddr*)&server, sizeof(server))) {
         closesocket(conn);
         return NULL;
     }
     return conn;
 }
 
-int getHeaderLength(char* content)
-{
+int getHeaderLength(char* content) {
     const char* srchStr1 = "\r\n\r\n", * srchStr2 = "\n\r\n\r";
     char* findPos;
     int ofset = -1;
 
     findPos = strstr(content, srchStr1);
-    if (findPos != NULL)
-    {
+    if (findPos != NULL) {
         ofset = findPos - content;
         ofset += strlen(srchStr1);
     }
-
-    else
-    {
+    else {
         findPos = strstr(content, srchStr2);
-        if (findPos != NULL)
-        {
+        if (findPos != NULL) {
             ofset = findPos - content;
             ofset += strlen(srchStr2);
         }
@@ -150,8 +130,7 @@ int getHeaderLength(char* content)
     return ofset;
 }
 
-char* readUrl2(char* szUrl, long& bytesReturnedOut, char** headerOut)
-{
+char* readUrl2(char* szUrl, long& bytesReturnedOut, char** headerOut) {
     const int bufSize = 512;
     char readBuffer[bufSize], sendBuffer[bufSize], tmpBuffer[bufSize];
     char* tmpResult = NULL, * result;
@@ -180,8 +159,7 @@ char* readUrl2(char* szUrl, long& bytesReturnedOut, char** headerOut)
     ///////////// step 3 - get received bytes ////////////////
     // Receive until the peer closes the connection
     totalBytesRead = 0;
-    while (1)
-    {
+    while (1) {
         memset(readBuffer, 0, bufSize);
         thisReadSize = recv(conn, readBuffer, bufSize, 0);
 
@@ -210,55 +188,4 @@ char* readUrl2(char* szUrl, long& bytesReturnedOut, char** headerOut)
     bytesReturnedOut = contenLen;
     closesocket(conn);
     return(result);
-}
-
-void ExtractData()
-{
-    std::ifstream fs;
-    std::map<std::string, bool> m{
-        {"title", 1},
-        {"h1", 1},
-        {"p", 1},
-    };
-    string output;
-
-    fs.open("webSource.txt");
-
-    if (!fs.is_open())
-    {
-        std::cerr << "error opening file" << std::endl;
-        exit(1);
-    }
-    else
-    {
-        std::string s, tag, end;
-        do
-        {
-            fs.ignore(256, '<');
-            getline(fs, s, '>');
-            std::stringstream ss(s);
-            tag = "";
-            getline(ss, tag, ' ');
-            try {
-                if (m.at(tag))
-                {
-                    output, end = "";
-                    while (end != "/" + tag)
-                    {
-                        getline(fs, output, '<');
-                        getline(fs, end, '>');
-                        if (end != ("/" + tag))
-                        {
-                            output += end;
-                        }
-                    }
-                    std::cout <<  output << std::endl;
-                }
-            }
-            catch (const std::out_of_range&) 
-            {
-                fs.ignore(256, '<');
-            }
-        } while (fs.ignore(256, '<'));
-    }
 }
