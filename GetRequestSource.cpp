@@ -28,7 +28,7 @@ int main()
 int Connect()
 {
     const int bufLen = 1024;
-    //char* szUrl = "https://example.com/";
+    //change website Url'
     char* szUrl = "https://example.com/";
     long fileSize;
     char* memBuffer, * headerBuffer;
