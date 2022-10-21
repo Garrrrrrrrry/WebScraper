@@ -1,4 +1,14 @@
 *.txt
 *.obj
 *.exe
+*.pdb
 *.vs/
+*.vcxproj
+*.vcxproj.filters
+*.sln
+cmake_install.cmake
+CMakeCache.txt
+CMakeFiles
+build
+*.dir
+x64
