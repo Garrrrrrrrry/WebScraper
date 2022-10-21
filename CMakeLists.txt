@@ -1,0 +1,9 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+
+Project(WebScrapper)
+
+SET(CMAKE_CXX_STANDARD 11)
+
+set(CMAKE_VERBOSE_MAKEFILE on)
+
+ADD_EXECUTABLE(main ./src/main.cpp)

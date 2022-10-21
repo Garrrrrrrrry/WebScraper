@@ -1,4 +1,4 @@
-*.txt
+web_source_files/*.txt
 *.obj
 *.exe
 *.pdb
